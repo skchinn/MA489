@@ -3,9 +3,9 @@ library(ggmap)
 library(ggplot2)
 library(tidyr)
 
-arrest_data_orig = read.csv("C:/Users/Samantha Chinn/OneDrive - West Point/AY21-1/MA489/MA489 - Spatial Temporal Statistics/Project/NYPD_Arrests_Data__Historic_.csv")
-arrest_data = arrest_data_orig %>%
-  select(ARREST_KEY,ARREST_DATE,OFNS_DESC,LAW_CODE,ARREST_BORO,AGE_GROUP,PERP_SEX,PERP_RACE,Latitude,Longitude)
+#arrest_data_orig = read.csv("C:/Users/Samantha Chinn/OneDrive - West Point/AY21-1/MA489/MA489 - Spatial Temporal Statistics/Project/NYPD_Arrests_Data__Historic_.csv")
+arrest_data = read.csv("C:/Users/Samantha Chinn/OneDrive - West Point/AY21-1/MA489/MA489 - Spatial Temporal Statistics/Project/arrest_data.csv")
+
 
 rape_data = arrest_data %>% filter(OFNS_DESC == "RAPE")
 ## ggmap API key
@@ -93,3 +93,33 @@ require(gridExtra)
 grid.arrange(rape_plot_white,rape_plot_whitehispanic,
              rape_plot_black,rape_plot_blackhispanic,
              ncol = 2)
+
+
+# create STFDF object
+library("sp")
+library("spacetime")
+arrest_data_ST = arrest_data %>% na.omit()
+arrest_data_ST = separate(arrest_data_ST, "ARREST_DATE", c("month", "day", "year"), sep = "/", remove = FALSE)
+arrest_data_ST = arrest_data_ST %>% arrange(ARREST_DATE)
+
+spat_part <- unique(arrest_data_ST[, c("Longitude", "Latitude")])
+spat_part <- SpatialPoints(coords = spat_part)
+temp_part <- with(arrest_data_ST,
+                  paste(year, month, day, sep = "-"))
+temp_part <- as.Date(temp_part)
+temp_part <- unique(temp_part)
+
+#rape_data_ST <- gather(arrest_data$PERP_RACE, arrest_data$ARREST_KEY)
+#pivot_longer()
+
+
+
+STObj <- STFDF(sp = spat_part,
+               time = temp_part,
+               data = arrest_data_ST)
+
+
+arrest_by_month = arrest_data_ST %>% 
+  count(month, year, Latitude, Longitude)
+
+View(arrest_by_month)
