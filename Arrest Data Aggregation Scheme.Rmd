@@ -201,9 +201,19 @@ lattice <- cbind(lattice,S_pred)                                                
 
 Create matrix of prediction values using basis functions.
 ```{r}
+library(broom)
+
 Grid_df_rem_space <- Grid_df_rem %>% select(-Longitude,-Latitude)
 Arrest_GLM_test <- glm(n ~ month^2 + ., family = poisson("log"), data = Grid_df_rem_space)
 summary(Arrest_GLM_test)
+
+# get fitted values, resduals, etc.
+pred_data <- augment(Arrest_GLM_test)
+
+# get predictions on new data set using the model fitted on data
+pred_data %>% augment(Arrest_GLM_test, newdata = data_pred)
+
+
 ```
 
 
